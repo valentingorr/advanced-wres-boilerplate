@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "cross-env NODE_ENV=production node index",
-    "devStart": "cross-env NODE_ENV=development nodemon index"
+    "dev": "cross-env NODE_ENV=development nodemon index"
   },
   "version": "1.0.0",
   "dependencies": {
