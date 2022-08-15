@@ -1,0 +1,46 @@
+{
+  "scripts": {
+    "start": "cross-env NODE_ENV=production node index",
+    "devStart": "cross-env NODE_ENV=development nodemon index"
+  },
+  "version": "1.0.0",
+  "dependencies": {
+    "axios": "^0.26.1",
+    "ejs": "^3.1.8",
+    "express": "4.16.x",
+    "express-session": "^1.17.3",
+    "react": "16.x.x",
+    "react-dom": "16.x.x",
+    "react-redux": "^8.0.2",
+    "react-router": "^6.3.0",
+    "react-router-dom": "^6.3.0",
+    "redux": "^4.2.0",
+    "socket.io": "^4.5.1",
+    "socket.io-client": "^4.5.1",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@babel/core": "7.x.x",
+    "@babel/preset-env": "7.x.x",
+    "@babel/preset-react": "7.x.x",
+    "@svgr/webpack": "^6.2.1",
+    "babel-loader": "8.x.x",
+    "cross-env": "^7.0.3",
+    "css-loader": "2.1.x",
+    "dotenv": "^16.0.0",
+    "file-loader": "^4.0.0",
+    "node-sass": "^7.0.1",
+    "nodemon": "^2.0.15",
+    "sass-loader": "^12.6.0",
+    "style-loader": "0.x.x",
+    "url-loader": "^2.0.0",
+    "webpack": "5.x.x",
+    "webpack-dev-middleware": "3.7.x"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "src/*",
+      "public/*"
+    ]
+  }
+}

@@ -1,0 +1,21 @@
+@mixin size($size, $radius: 0) {
+	width: $size;
+	height: $size;
+	@if $radius != 0 {
+		border-radius: $radius;
+	}
+}
+
+@mixin bg($url, $size, $position: center) {
+	background-image: url($url);
+	background-repeat: no-repeat;
+	background-position: $position;
+	background-size: $size;
+}
+
+$body-dark-primary: #282c34;
+$color-dark-primary: #f0f0f0;
+
+:export{
+	body-dark-primary: $body-dark-primary;
+}
