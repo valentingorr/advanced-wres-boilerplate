@@ -1,4 +1,10 @@
 @import "config";
+@import "components";
+
+@font-face {
+	font-family: Outfit-Regular;
+	src: url("fonts/Outfit/Outfit-Regular.ttf");
+}
 
 html, html > body, #root {
 	@include size(100%);
@@ -11,6 +17,7 @@ html, html > body, #root {
 	box-sizing: border-box;
 	align-items: center;
 	list-style: none;
+	&[component="button"] { @extend %button; }
 }
 
 button, a {
@@ -21,46 +28,6 @@ button, a {
 body {
 	padding: 0;
 	margin: 0;
-}
-//---------------------------\\
-
-.App {
-	text-align: center;
-}
-
-.App-logo {
-	height: 40vmin;
-	pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-	.App-logo {
-		animation: App-logo-spin infinite 20s linear;
-	}
-}
-
-.App-header {
-	background-color: $body-dark-primary;
-	min-height: 100vh;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	font-size: calc(10px + 2vmin);
 	color: $color-dark-primary;
+	font-family: Outfit-Regular, sans-serif;
 }
-
-.App-link {
-	color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-	from {
-		transform: rotate(0deg);
-	}
-	to {
-		transform: rotate(360deg);
-	}
-}
-
-//---------------------------\\

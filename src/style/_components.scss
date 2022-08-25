@@ -1,0 +1,25 @@
+@import "config";
+
+%button {
+	padding: .25em 1em;
+	font-weight: bold;
+	transition: .3s all ease;
+	font-size: 1.125rem;
+	border-radius: 2px;
+	$bg: $primary;
+	&.bg-white {
+		$bg: white;
+		border: 2px solid transparent;
+	}
+	background-color: $bg;
+	&:hover {
+		&:not(.bg-white) {
+			background-color: rgba($bg, .8);
+		}
+		&.bg-white {
+			background-color: black;
+			color: white;
+			border: 2px solid white;
+		}
+	}
+}

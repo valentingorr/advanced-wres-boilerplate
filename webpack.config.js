@@ -39,7 +39,7 @@ module.exports = {
 				]
 			},
 			{
-				test: /\.(png|jp(e*)g)$/,
+				test: /\.(png|jp(e*)g|obj)$/,
 				exclude: /node_modules/,
 				use: [{
 					loader: "url-loader",
@@ -53,6 +53,11 @@ module.exports = {
 				test: /\.svg$/,
 				exclude: /node_modules/,
 				use: ["@svgr/webpack", "url-loader"]
+			},
+			{
+				test: /\.ttf$/,
+				exclude: /node_modules/,
+				use: ["file-loader"]
 			}
 		]
 	},

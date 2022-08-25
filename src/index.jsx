@@ -45,7 +45,7 @@ const App = () => {
 	const theme = useSelector(state => state.theme);
 
 	useEffect(() => {
-		socket.on("expired-session", () => alert("user session expired"))
+		// socket.on("expired-session", () => alert("user session expired"))
 	}, []);
 
 	return (

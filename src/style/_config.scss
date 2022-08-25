@@ -13,9 +13,13 @@
 	background-size: $size;
 }
 
-$body-dark-primary: #282c34;
+$body-dark-primary: #111;
+
 $color-dark-primary: #f0f0f0;
 
-:export{
+$primary: #58d8e4;
+
+:export {
 	body-dark-primary: $body-dark-primary;
+	color-dark-primary: $color-dark-primary;
 }
