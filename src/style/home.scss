@@ -67,4 +67,24 @@ body {
 		bottom: 0;
 		right: 0;
 	}
+	#slides-controls {
+		position: absolute;
+		right: 2em;
+		top: 50%;
+		transform: translateY(-50%);
+		display: flex;
+		flex-direction: column;
+		> button {
+			border: 2px solid transparent;
+			transition: .3s all ease;
+			@include size(18px, 50%);
+			background-color: #333;
+			&:not(:last-child) {
+				margin-bottom: 1em;
+			}
+			&.current {
+				border: 2px solid #666;
+			}
+		}
+	}
 }
