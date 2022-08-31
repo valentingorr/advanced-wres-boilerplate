@@ -23,42 +23,6 @@ body {
 }
 
 .Home-route {
-	#loader {
-		position: fixed;
-		left: 0;
-		top: 0;
-		bottom: 0;
-		right: 0;
-		background-color: black;
-		display: flex;
-		justify-content: center;
-		> .wrapper {
-			> h1 {
-				text-align: center;
-			}
-			> button {
-				opacity: 0;
-			}
-			> .loader {
-				width: 20vw;
-				height: 0.25rem;
-				background-color: #eee;
-				border-radius: 0.125rem;
-				position: relative;
-				overflow: hidden;
-				&:after {
-					content: " ";
-					background-color: $primary;
-					position: absolute;
-					left: 0%;
-					right: 100%;
-					animation: loading 2s ease infinite;
-					height: 100%;
-					border-radius: 0.125rem;
-				}
-			}
-		}
-	}
 	#Scene-container {
 		@include size(100%);
 		position: absolute;
@@ -66,25 +30,5 @@ body {
 		left: 0;
 		bottom: 0;
 		right: 0;
-	}
-	#slides-controls {
-		position: absolute;
-		right: 2em;
-		top: 50%;
-		transform: translateY(-50%);
-		display: flex;
-		flex-direction: column;
-		> button {
-			border: 2px solid transparent;
-			transition: .3s all ease;
-			@include size(18px, 50%);
-			background-color: #333;
-			&:not(:last-child) {
-				margin-bottom: 1em;
-			}
-			&.current {
-				border: 2px solid #666;
-			}
-		}
 	}
 }
