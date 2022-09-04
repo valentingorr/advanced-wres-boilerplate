@@ -19,6 +19,7 @@ import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { MTLLoader } from "three/examples/jsm/loaders/MTLLoader.js";
 
 import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -33,8 +34,49 @@ const p2d = n => n * (((Math.PI / 2) / 9) / 10);
 
 export default props => {
 
+	const [currentSlide, setCurrentSlide] = useState(undefined);
+
+	let camera;
+	const moveElement = (element, position, rotation, duration = .5) => {
+		const currentPosition = {...new THREE.Vector3().copy(element.position)};
+		const tl = gsap.timeline({ paused: true });
+		tl.to(currentPosition, {
+			...position,
+			duration: duration,
+			ease: Linear.easeNone
+		});
+		tl.eventCallback("onUpdate", () => {
+			Object.keys(currentPosition).forEach(key => {
+				element.position[key] = currentPosition[key];
+			});
+		});
+		return tl;
+	};
+
+	const slides = [
+		{
+			component: props => {
+				return (
+					<>
+						<h1>Valentin Gorrin</h1>
+						<p>Computer engineer</p>
+					</>
+				);
+			}
+		}
+	];
+
 	const sceneRef = useRef();
 
+	const Slide = slideProps => {
+		return (
+			<div slide={slideProps.slide} className={`slide${currentSlide === slideProps.slide ? " s-active" : ""}`}>
+				{slideProps.children}
+			</div>
+		);
+	};
+
+	//3d scene
 	useEffect(() => {
 		const container = sceneRef.current;
 		let [containerWidth, containerHeight] = [container.offsetWidth, container.offsetHeight];
@@ -45,7 +87,7 @@ export default props => {
 		const renderer = new THREE.WebGLRenderer({ antialias: false });
 		renderer.toneMappingExposure = Math.pow(.75, 4.0)
 		const scene = new THREE.Scene();
-		const camera = new THREE.PerspectiveCamera(50, containerWidth / containerHeight, 1, 1000);
+		camera = new THREE.PerspectiveCamera(50, containerWidth / containerHeight, 1, 1000);
 		camera.position.set(0, 5, -5);
 
 		const fxaaPass = new ShaderPass(FXAAShader);
@@ -120,25 +162,48 @@ export default props => {
 		const materials = {};
 
 		let deskMesh;
-		let drawerGroup = new THREE.Group();
-
+		const drawer = {
+			group: [],
+			opened: false,
+			locked: true
+		}
 		const rgbMeshes = [];
 		let interactivesMeshes = [];
 		const interactiveChildren = [];
 
+		const combinations = [
+			{
+				combination: "a",
+				// combination: "valentin",
+				exec: () => {
+					if(drawer.opened) return;
+					drawer.group.forEach(mesh => {
+						moveElement(mesh, new THREE.Vector3().copy(mesh.position).add(new THREE.Vector3(0, 0, -45), new THREE.Vector3().copy(mesh.rotation))).play();
+					});
+					drawer.opened = true;
+					drawer.locked = false;
+				}
+			}
+		];
+
 		let keysCombination = "";
 		const pushCombinaison = key => {
 			keysCombination += key;
-			console.log(keysCombination)
+			const combination = combinations.find(c => new RegExp(`${c.combination}$`, "g").test(keysCombination));
+			if(!combination) return;
+			combination.exec();
 		};
 
 		(async () => {
-			camera.position.set(-500, 100, 0);
+
+			const varinoFont = await new Promise(load => new FontLoader().load("/fonts/Varino_Regular.json", load));
+
+			camera.position.set(0, 250, -5);
 			scene.add(new THREE.AmbientLight(0x777777));
 
 			let screen;
 
-			deskMesh = await new Promise(load => new OBJLoader().load("/3d/desk.obj", load));
+			deskMesh = await new Promise(load => new OBJLoader().load("/3d/desk2.obj", load));
 			deskMesh.name = "desk";
 			deskMesh.traverse(child => {
 				if(!(child instanceof THREE.Mesh)) return;
@@ -147,8 +212,22 @@ export default props => {
 					interactivesMeshes.push({
 						name: child.name,
 						defaultMaterial: new THREE.MeshPhongMaterial({ color: 0x151515 }),
-						mesh: child
+						mesh: child,
+						click: () => {
+							if(drawer.opened) {
+								drawer.opened = false;
+								return drawer.group.forEach(mesh => {
+									moveElement(mesh, new THREE.Vector3(0, 0, 0, new THREE.Vector3().copy(mesh.rotation))).play();
+								});
+							} else if(!drawer.locked) {
+								drawer.group.forEach(mesh => {
+									moveElement(mesh, new THREE.Vector3().copy(mesh.position).add(new THREE.Vector3(0, 0, -45), new THREE.Vector3().copy(mesh.rotation))).play();
+								});
+								drawer.opened = true;
+							}
+						}
 					});
+					drawer.group.push(child);
 				}
 				if(/rgb/.test(child.name)) {
 					child.layers.enable(BLOOM_SCENE);
@@ -156,14 +235,34 @@ export default props => {
 					rgbMeshes.push(child);
 					return;
 				}
-				if(child.name === "screen") {
-					screen = child;
-					// const box = new BoxHelper(child, 0xffff00);
-					// scene.add(box);
-				}
+				if(child.name === "screen") screen = child;
 				if(/^keyboard\(.\)/.test(child.name)) {
+					if(/_[1-9]$/.test(child.name)) return;
 					const box = new BoxHelper(child, 0xffff00);
-					scene.add(box);
+					// scene.add(box);
+
+					const text = new THREE.Mesh(new TextGeometry(child.name.replace(/^keyboard\((.)\)/, "$1"), {
+						font: varinoFont,
+						size: .9,
+						height: .25
+					}), child.material = new THREE.MeshBasicMaterial({ color: 0x00ffff }));
+
+					text.rotation.x = p2d(-90);
+					text.rotation.z = p2d(180);
+					const textSize = new THREE.Box3().setFromObject(text).getSize(new THREE.Vector3());
+					const offset = child.geometry.boundingBox.getCenter(new THREE.Vector3());
+					const position = offset.add(deskMesh.position).sub(new THREE.Vector3(
+						-(textSize.x / 2),
+						0,
+						textSize.z / 2
+					)).add(new THREE.Vector3(0, 1, 0));
+
+					text.position.copy(position);
+
+					text.layers.enable(BLOOM_SCENE);
+					rgbMeshes.push(text);
+					scene.add(text);
+
 					interactivesMeshes.push({
 						name: child.name,
 						defaultMaterial: new THREE.MeshBasicMaterial({ color: 0x444444 }),
@@ -171,7 +270,9 @@ export default props => {
 						click: () => {
 							const audio = new Audio("/audios/switch-click.wav");
 							audio.play();
-							pushCombinaison(child.name.replace(/^keyboard\((.)\)/, "$1"))
+							pushCombinaison(child.name.replace(/^keyboard\((.)\)/, "$1"));
+							moveElement(child, new THREE.Vector3().copy(child.position).sub(new THREE.Vector3(0, .5, 0), new THREE.Vector3().copy(child.rotation)), .1, .05).repeat(1).yoyo(true).play();
+							moveElement(text, new THREE.Vector3().copy(text.position).sub(new THREE.Vector3(0, .5, 0), new THREE.Vector3().copy(text.rotation)), .1, .05).repeat(1).yoyo(true).play();
 						}
 					});
 				}
@@ -243,9 +344,100 @@ export default props => {
 			].map(shelve => {
 				const mesh = new THREE.Mesh(new THREE.BoxGeometry(125, 5, 20), new THREE.MeshPhongMaterial({ color: 0x111111 }));
 				mesh.position.copy(shelve.add(new THREE.Vector3(0, 115, 27.5)));
+				const size = new THREE.Box3().setFromObject(mesh).getSize(new THREE.Vector3());
 				scene.add(mesh);
-				return mesh;
+				return {mesh, size};
 			});
+
+			const portalGun = await new Promise(async load => {
+				const objLoader = new OBJLoader();
+				await new Promise((resolve, reject) => {
+					new MTLLoader().load("/3d/portal_gun.mtl", materials => {
+						materials.preload();
+						objLoader.setMaterials(materials);
+						resolve();
+					});
+				});
+				objLoader.load("/3d/portal_gun.obj", load);
+			});
+
+			let fuildContainer;
+
+			portalGun.traverse(child => {
+				if(/led/g.test(child.name)) {
+					const color = child.name.replace(/led\_([a-z]*)(\_.*)/, "$1");
+					child.layers.enable(BLOOM_SCENE);
+					child.material = new THREE.MeshBasicMaterial({ color: color });
+				}
+				if(/fluid-container/g.test(child.name)) {
+					child.layers.enable(BLOOM_SCENE);
+					child.material = new THREE.MeshBasicMaterial({ color: 0x55ff55 });
+					fuildContainer = child;
+				}
+			});
+
+			const fuildPulseTl = gsap.timeline({ paused: true });
+
+			const colors = [
+				[85, 255, 85],
+				[70, 230, 60],
+			].map(color => {
+				const divided = color.map(i => (i / 255));
+				return {
+					r: divided[0],
+					g: divided[1],
+					b: divided[2]
+				}
+			}).forEach(color => {
+				fuildPulseTl.to(fuildContainer.material.color, {
+					...color,
+					duration: .5,
+					ease: "circ.out"
+				});
+			});
+			fuildPulseTl.repeat(-1).yoyo(true).play();
+
+			portalGun.rotation.x = p2d(-65);
+			portalGun.rotation.z = p2d(-15);
+			portalGun.scale.set(.13, .13, .13);
+			const portalGunSize = new THREE.Box3().setFromObject(portalGun).getSize(new THREE.Vector3());
+			portalGun.position.fromArray(["x", "y", "z"].map(axe => shelves[0].mesh.position[axe])).add(new THREE.Vector3(
+				40,
+				(portalGunSize.y / 2) - 2.25,
+				-5
+			));
+			scene.add(portalGun);
+
+			[
+				"About",
+				"Works"
+			].forEach(nav => {
+				const li = $("<li>").appendTo($("nav > ul:nth-child(1)"));
+				const letters = nav.split("");
+				letters.forEach((letter, i) => {
+				i += 1;
+				let span = $("<span>");
+				let delay = i / 20;
+				if (i % 2 === 0) {
+					delay -= 0.1;
+				} else {
+					delay += 0.05;
+				}
+				let letterOut =  $("<span>");
+				letterOut.text(letter);
+				letterOut.css({ "transition-delay": `${delay}s` });
+				letterOut.addClass("out");
+				span.append(letterOut);
+				let letterIn = $("<span>");
+				letterIn.text(letter);
+				letterIn.css({ "transition-delay": `${delay}s` });
+				letterIn.addClass("in");
+				span.append(letterIn);
+				li.append(span);
+				});
+			});
+
+			setCurrentSlide(0);
 
 		})();
 
@@ -375,11 +567,23 @@ export default props => {
 			//--------------------
 		})();
 		container.appendChild(renderer.domElement);
-	})
+	}, []);
+
+	useEffect(() => {
+		console.log("Hello World")
+	}, [currentSlide]);
 
 	return (
 		<div className={`Home-route`}>
 			<div id="Scene-container" ref={sceneRef}></div>
+			<nav>
+				<ul></ul>
+			</nav>
+			{ slides.map((slide, slideKey) => (
+				<Slide slide={slideKey} key={slideKey}>
+					<slide.component />
+				</Slide>
+			)) }
 		</div>
 	);
 };

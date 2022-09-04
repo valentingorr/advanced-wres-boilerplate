@@ -64,7 +64,7 @@ module.exports = {
 	plugins: [],
 	output: {
 		filename: "app.bundle.js",
-		path: path.resolve(__dirname, "./dist"),
-		publicPath: "/"
+		path: path.resolve(__dirname, "./public/assets/scripts/"),
+		publicPath: "/scripts/"
 	}
 };
